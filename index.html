@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat WebSocket</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    
+    #chat-container {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 400px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    #messages {
+      margin-top: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      background-color: #fafafa;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+
+    #messages p {
+      padding: 5px;
+      margin: 5px 0;
+      background-color: #e6f7ff;
+      border-radius: 5px;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    button {
+      width: 80%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    input[type="text"]:focus, button:focus {
+      outline: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="chat-container">
+    <h2>Chat en Tiempo Real con WebSockets</h2>
+
+    <input type="text" id="usernameInput" placeholder="Ingresa tu nombre..." />
+    <br>
+    <input type="text" id="messageInput" placeholder="Escribe un mensaje..." />
+    <button onclick="sendMessage()">Enviar</button>
+
+    <div id="messages"></div>
+  </div>
+
+  <script>
+    // Reemplaza con la URL que te da Ngrok
+    const socket = new WebSocket('https://8536-187-190-158-21.ngrok-free.app/');
+
+    socket.addEventListener('open', function () {
+      console.log('Conectado al servidor WebSocket');
+    });
+
+    socket.addEventListener('message', function (event) {
+      const data = JSON.parse(event.data);
+
+      if (data.type === 'history') {
+        // Mostrar mensajes previos al conectarse
+        data.messages.forEach(mensaje => {
+          agregarMensaje(mensaje);
+        });
+      } else if (data.type === 'message') {
+        // Mostrar mensaje en tiempo real
+        agregarMensaje(data.message);
+      }
+    });
+
+    function sendMessage() {
+      const inputMessage = document.getElementById('messageInput');
+      const message = inputMessage.value;
+      const username = document.getElementById('usernameInput').value || 'Usuario desconocido';
+
+      if (message) {
+        socket.send(JSON.stringify({ username: username, message: message }));
+        inputMessage.value = '';
+      }
+    }
+
+    function agregarMensaje(mensaje) {
+      const messagesDiv = document.getElementById('messages');
+      messagesDiv.innerHTML += `<p><strong>${mensaje}</strong></p>`;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto scroll al último mensaje
+    }
+  </script>
+</body>
+
+</html>
